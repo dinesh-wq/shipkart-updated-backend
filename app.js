@@ -1,19 +1,40 @@
-const { use } = require('bcrypt/promises')
-const express = require('express')
-const {Pool} = require('pg')
-const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'postgres',
-    password: 'Dinesh123@',
-    port: 3001,
-})
-const app = express()
-app.use(express.json())
+const express = require('express');
+require('dotenv').config();
+const { Pool } = require('pg');
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000")
-})
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  });
+
+async function runCommand() {
+  const client = await pool.connect();
+  const data = await client.query("${COMMAND}");
+  await client.release();
+  return data;
+}
+
+const app = express();
+app.use(express.json());
+
+const PORT = process.env.PORT || 3000;
+
+// Avoid starting the server when this module is imported elsewhere.
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+
+  server.on('error', (err) => {
+    if (err && err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use. Stop other server instances and retry.`);
+      return;
+    }
+    console.error(err);
+  });
+}
 
 
 
@@ -28,7 +49,7 @@ app.get('/users', async (request, response) => {
         response.status(500).send(`Server Error: ${error.message}`);
         console.log(error.message);
         process.exit(1);
-    }
+    } 
 })
 
 // API 2 GET get the specific user from the users table using user_id
@@ -128,6 +149,7 @@ app.post('/orders', async (request, response) => {
         const {user_id, product_id, delivery_status, payment_status} = request.body
         if (user_id === undefined || product_id === undefined || delivery_status === undefined || payment_status === undefined) {
             response.status(400).send(`Please check user_id, product_id, delivery_status and payment_status fields are not empty`)
+            return;
         }
         else {
             const query = await pool.query(`INSERT INTO orders (user_id, product_id, delivery_status, payment_status) VALUES (${user_id}, ${product_id}, '${delivery_status}', '${payment_status}');`)
@@ -163,6 +185,10 @@ app.put('/orders/:order_id', async (request, response) => {
             if (payment_status!==undefined) {
                 fields.push(`payment_status='${payment_status}'`)
             }
+            if (fields.length === 0) {
+                response.status(400).send(`Please provide at least one field to update`)
+                return;
+            }
             const query = await pool.query(`UPDATE orders SET ${fields.join(',')} WHERE order_id=${order_id};`)
             response.status(200).send('Order Details Updated Successfully')
             }
@@ -172,5 +198,5 @@ app.put('/orders/:order_id', async (request, response) => {
     }
 })
 
-module.exports = { app, pool };
+module.exports = { app, pool, runCommand };
 
