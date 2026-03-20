@@ -146,13 +146,13 @@ app.get('/orders/:order_id', async (request, response) => {
 // API 7 POST Create new order in the orders table
 app.post('/orders', async (request, response) => {
     try {
-        const {user_id, product_id, delivery_status, payment_status} = request.body
-        if (user_id === undefined || product_id === undefined || delivery_status === undefined || payment_status === undefined) {
+        const {user_id, delivery_status, payment_status} = request.body
+        if (user_id === undefined || delivery_status === undefined || payment_status === undefined) {
             response.status(400).send(`Please check user_id, product_id, delivery_status and payment_status fields are not empty`)
             return;
         }
         else {
-            const query = await pool.query(`INSERT INTO orders (user_id, product_id, delivery_status, payment_status) VALUES (${user_id}, ${product_id}, '${delivery_status}', '${payment_status}');`)
+            const query = await pool.query(`INSERT INTO orders (user_id, delivery_status, payment_status) VALUES ('${user_id}',  '${delivery_status}', '${payment_status}');`)
             response.status(201).send(`Order Added Successfully`)
         }
     }
@@ -166,7 +166,7 @@ app.post('/orders', async (request, response) => {
 app.put('/orders/:order_id', async (request, response) => {
     try {
         const {order_id} = request.params
-        const {user_id, product_id, delivery_status, payment_status} = request.body
+        const {user_id, delivery_status, payment_status} = request.body
         const user = await pool.query(`SELECT * FROM orders WHERE order_id=${order_id};`)
         if (user.rows.length === 0){
             response.status(400).send(`User Not Found in the DataBase`)
@@ -175,9 +175,6 @@ app.put('/orders/:order_id', async (request, response) => {
             let fields = [];
             if (user_id!==undefined) {
                 fields.push(`user_id=${user_id}`)
-            }
-            if (product_id!==undefined) {
-                fields.push(`product_id=${product_id}`)
             }
             if (delivery_status!==undefined) {
                 fields.push(`delivery_status='${delivery_status}'`)
