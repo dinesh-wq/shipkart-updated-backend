@@ -97,10 +97,10 @@ app.put('/users/:user_id', async (request, response) => {
         else {
             const old_name = result.rows[0].name
             if (name === old_name) {
-                response.status(404      ).send(`New Name Should be different From the old name`)
+                response.status(404).send(`New Name Should be different From the old name`)
             }
             else {
-                const query = pool.query(`UPDATE users SET name='${name}' WHERE user_id=${user_id};`)
+                const query = pool.query(`UPDATE users SET name='${name}' WHERE user_id='${user_id}';`)
                 response.status(200).send(`User Details Updated Successfully`)
             }  
         }
@@ -162,7 +162,7 @@ app.post('/orders', async (request, response) => {
     }
 })
 
-// API 8 Update the order details in the orders table
+// API 8 PUT Update the order details in the orders table
 app.put('/orders/:order_id', async (request, response) => {
     try {
         const {order_id} = request.params
@@ -189,7 +189,7 @@ app.put('/orders/:order_id', async (request, response) => {
                 response.status(400).send(`Please provide at least one field to update`)
                 return;
             }
-            const query = await pool.query(`UPDATE orders SET ${fields.join(',')} WHERE order_id=${order_id};`)
+            const query = await pool.query(`UPDATE orders SET ${fields.join(',')} WHERE order_id='${order_id}';`)
             response.status(200).send('Order Details Updated Successfully')
             }
     }
