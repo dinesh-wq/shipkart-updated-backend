@@ -56,7 +56,7 @@ app.get('/users', async (request, response) => {
 app.get('/users/:id', async (request, response) => {
     try {
         const {id} = request.params;
-        const query = await pool.query(`SELECT * FROM users WHERE user_id=${id};`)
+        const query = await pool.query(`SELECT * FROM users WHERE user_id='${id}';`)
         const users = query.rows;
         if (users.length === 0) {
             response.status(404).send('User not found');
@@ -128,7 +128,7 @@ app.get('/orders', async (request, response) => {
 app.get('/orders/:order_id', async (request, response) => {
     try {
         const {order_id} = request.params
-        const query = await pool.query(`SELECT * FROM orders WHERE order_id=${order_id}`)
+        const query = await pool.query(`SELECT * FROM orders WHERE order_id='${order_id}'`)
         const orders = query.rows
         if (orders.length === 0){
             response.status(404).send(`Order with the order ID ${order_id} not found in the database`)
