@@ -174,7 +174,7 @@ app.put('/orders/:order_id', async (request, response) => {
         else {
             let fields = [];
             if (user_id!==undefined) {
-                fields.push(`user_id=${user_id}`)
+                fields.push(`user_id='${user_id}'`)
             }
             if (delivery_status!==undefined) {
                 fields.push(`delivery_status='${delivery_status}'`)
