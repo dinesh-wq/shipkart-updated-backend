@@ -167,7 +167,7 @@ app.put('/orders/:order_id', async (request, response) => {
     try {
         const {order_id} = request.params
         const {user_id, delivery_status, payment_status} = request.body
-        const user = await pool.query(`SELECT * FROM orders WHERE order_id=${order_id};`)
+        const user = await pool.query(`SELECT * FROM orders WHERE order_id='${order_id}';`)
         if (user.rows.length === 0){
             response.status(400).send(`User Not Found in the DataBase`)
         }
