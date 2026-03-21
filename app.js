@@ -16,8 +16,10 @@ async function runCommand() {
   return data;
 }
 
+const cors = require('cors');
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
@@ -146,22 +148,94 @@ app.get('/orders/:order_id', async (request, response) => {
 // API 7 POST Create new order in the orders table
 app.post('/orders', async (request, response) => {
     try {
-        const {user_id, delivery_status, payment_status} = request.body
-        if (user_id === undefined || delivery_status === undefined || payment_status === undefined) {
-            response.status(400).send(`Please check user_id, product_id, delivery_status and payment_status fields are not empty`)
-            return;
-        }
-        else {
-            const query = await pool.query(`INSERT INTO orders (user_id, delivery_status, payment_status) VALUES ('${user_id}',  '${delivery_status}', '${payment_status}');`)
-            response.status(201).send(`Order Added Successfully`)
-        }
+      const {
+        user_id,
+  
+        pickup_address,
+        pickup_pincode,
+        pickup_landmark,
+        pickup_date_time,
+        user_phone_number,
+  
+        receiver_address,
+        receiver_pincode,
+        receiver_landmark,
+        receiver_phone_number,
+  
+        item_name,
+        item_weight,
+        item_condition,
+  
+        delivery_agent_name,
+        delivery_agent_phone_number,
+  
+        delivery_status
+      } = request.body;
+  
+      //  Basic validation
+      if (!user_id || !pickup_address || !pickup_date_time || !receiver_address) {
+        return response.status(400).send("Required fields missing");
+      }
+  
+      const query = `
+        INSERT INTO orders (
+          user_id,
+          pickup_address,
+          pickup_pincode,
+          pickup_landmark,
+          pickup_date_time,
+          user_phone_number,
+  
+          receiver_address,
+          receiver_pincode,
+          receiver_landmark,
+          receiver_phone_number,
+  
+          item_name,
+          item_weight,
+          item_condition,
+  
+          delivery_agent_name,
+          delivery_agent_phone_number,
+  
+          delivery_status
+        )
+        VALUES (
+          '${user_id}',
+          '${pickup_address}',
+          '${pickup_pincode}',
+          '${pickup_landmark}',
+          '${pickup_date_time}',
+          '${user_phone_number}',
+  
+          '${receiver_address}',
+          '${receiver_pincode}',
+          '${receiver_landmark}',
+          '${receiver_phone_number}',
+  
+          '${item_name}',
+          ${item_weight},
+          '${item_condition}',
+  
+          '${delivery_agent_name}',
+          '${delivery_agent_phone_number}',
+  
+          '${delivery_status || 'pending'}'
+        )
+        RETURNING *;
+      `;
+  
+      const result = await pool.query(query);
+  
+      response.status(201).json({
+        message: "Order Added Successfully",
+        order: result.rows[0]
+      });
+  
+    } catch (error) {
+      response.status(500).send(`Server Error: ${error.message}`);
     }
-    catch(error) {
-        response.status(500).send(`Server Error : ${error.message}`)
-        process.exit(1)
-    }
-})
-
+  });
 // API 8 PUT Update the order details in the orders table
 app.put('/orders/:order_id', async (request, response) => {
     try {
