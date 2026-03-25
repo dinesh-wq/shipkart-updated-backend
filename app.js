@@ -220,7 +220,7 @@ app.post('/orders', async (request, response) => {
           '${delivery_agent_name}',
           '${delivery_agent_phone_number}',
   
-          '${delivery_status || 'pending'}'
+          'Collected by delivery agent'
         )
         RETURNING *;
       `;
@@ -240,7 +240,23 @@ app.post('/orders', async (request, response) => {
 app.put('/orders/:order_id', async (request, response) => {
     try {
         const {order_id} = request.params
-        const {user_id, delivery_status, payment_status} = request.body
+        const {user_id, 
+            pickup_address, 
+            pickup_pincode, 
+            pickup_landmark, 
+            pickup_date_time, 
+            user_phone_number, 
+            receiver_address, 
+            receiver_pincode, 
+            receiver_landmark, 
+            receiver_phone_number, 
+            item_name, 
+            item_weight, 
+            item_condition, 
+            delivery_agent_name, 
+            delivery_agent_phone_number,
+            delivery_status
+        } = request.body
         const user = await pool.query(`SELECT * FROM orders WHERE order_id='${order_id}';`)
         if (user.rows.length === 0){
             response.status(400).send(`User Not Found in the DataBase`)
@@ -250,11 +266,50 @@ app.put('/orders/:order_id', async (request, response) => {
             if (user_id!==undefined) {
                 fields.push(`user_id='${user_id}'`)
             }
+            if (pickup_address!==undefined) {
+                fields.push(`pickup_address='${pickup_address}'`)
+            }
+            if (pickup_pincode!==undefined) {
+                fields.push(`pickup_pincode='${pickup_pincode}'`)
+            }
+            if (pickup_landmark!==undefined) {
+                fields.push(`pickup_landmark='${pickup_landmark}'`)
+            }
+            if (pickup_date_time!==undefined) {
+                fields.push(`pickup_date_time='${pickup_date_time}'`)
+            }
+            if (user_phone_number!==undefined) {
+                fields.push(`user_phone_number='${user_phone_number}'`)
+            }
+            if (receiver_address!==undefined) {
+                fields.push(`receiver_address='${receiver_address}'`)
+            }
+            if (receiver_pincode!==undefined) {
+                fields.push(`receiver_pincode='${receiver_pincode}'`)
+            }
+            if (receiver_landmark!==undefined) {
+                fields.push(`receiver_landmark='${receiver_landmark}'`)
+            }
+            if (receiver_phone_number!==undefined) {
+                fields.push(`receiver_phone_number='${receiver_phone_number}'`)
+            }
+            if (item_name!==undefined) {
+                fields.push(`item_name='${item_name}'`)
+            }
+            if (item_weight!==undefined) {
+                fields.push(`item_weight='${item_weight}'`)
+            }
+            if (item_condition!==undefined) {
+                fields.push(`item_condition='${item_condition}'`)
+            }
+            if (delivery_agent_name!==undefined) {
+                fields.push(`delivery_agent_name='${delivery_agent_name}'`)
+            }
+            if (delivery_agent_phone_number!==undefined) {
+                fields.push(`delivery_agent_phone_number='${delivery_agent_phone_number}'`)
+            }
             if (delivery_status!==undefined) {
                 fields.push(`delivery_status='${delivery_status}'`)
-            }
-            if (payment_status!==undefined) {
-                fields.push(`payment_status='${payment_status}'`)
             }
             if (fields.length === 0) {
                 response.status(400).send(`Please provide at least one field to update`)
