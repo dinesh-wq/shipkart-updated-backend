@@ -316,11 +316,11 @@ app.put('/orders/:order_id', async (request, response) => {
                 return;
             }
             const query = await pool.query(`UPDATE orders SET ${fields.join(',')} WHERE order_id='${order_id}';`)
-            response.status(200).send('Order Details Updated Successfully')
+            response.status(200).json({message: `Order Details Updated Successfully`})
             }
     }
     catch(error) {
-        response.status(500).send(`Server Error: ${error.message}`)
+        response.status(500).json({message: error.message})
     }
 })
 
