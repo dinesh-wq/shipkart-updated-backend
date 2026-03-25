@@ -64,7 +64,7 @@ app.get('/users/:id', async (request, response) => {
             response.status(404).send('User not found');
         }
         else {
-            response.status(200).send(users)
+            response.status(200).send(users[0])
         }
     }
     catch(error) {
