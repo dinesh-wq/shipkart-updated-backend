@@ -77,8 +77,8 @@ app.get('/users/:id', async (request, response) => {
 // API 3 POST Create new user in the users table
 app.post('/users', async (request, response) => {
     try {
-        const {name} = request.body;
-        const query = await pool.query(`INSERT INTO users(name, total_orders, delivered_orders, orders_in_progress) VALUES ('${name}', 0, 0, 0);`)
+        const {name, email, password, jwt_token} = request.body;
+        const query = await pool.query(`INSERT INTO users(name, email, password, jwt_token, total_orders, delivered_orders, orders_in_progress, rejected_orders) VALUES ('${name}', '${email}', '${password}', '${jwt_token}', 0, 0, 0, 0);`)
         response.send(`User Created Successfully`)
     }
     catch (error) {
