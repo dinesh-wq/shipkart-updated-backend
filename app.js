@@ -1,6 +1,12 @@
 const express = require('express');
 require('dotenv').config();
 const { Pool } = require('pg');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+
+app.use(cookieParser());
+app.use(express.json());
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -77,8 +83,11 @@ app.get('/users/:id', async (request, response) => {
 // API 3 POST Create new user in the users table
 app.post('/users', async (request, response) => {
     try {
-        const {name, email, password, jwt_token} = request.body;
-        const query = await pool.query(`INSERT INTO users(name, email, password, jwt_token, total_orders, delivered_orders, orders_in_progress, rejected_orders) VALUES ('${name}', '${email}', '${password}', '${jwt_token}', 0, 0, 0, 0);`)
+        const {name, email, password} = request.body;
+        const hashed_password = await bcrypt.hash(password, 10);
+        const jwt_token = jwt.sign({name, email, hashed_password: hashed_password}, process.env.JWT_SECRET);
+        response.cookie('jwt_token', jwt_token);
+        const query = await pool.query(`INSERT INTO users(name, email, password, jwt_token, total_orders, delivered_orders, orders_in_progress, rejected_orders) VALUES ('${name}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
         response.send(`User Created Successfully`)
     }
     catch (error) {

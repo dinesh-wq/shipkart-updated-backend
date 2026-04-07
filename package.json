@@ -18,9 +18,11 @@
   "homepage": "https://github.com/dinesh-wq/shipkart-updated-backend#readme",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^4.22.1",
-    "pg": "^8.20.0",
-    "cors": "^2.8.5"
+    "pg": "^8.20.0"
   }
 }
