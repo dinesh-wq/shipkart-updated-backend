@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 
-app.use(cookieParser());
-app.use(express.json());
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -25,6 +23,7 @@ async function runCommand() {
 const cors = require('cors');
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors());
 
 const PORT = process.env.PORT || 3000;
@@ -83,43 +82,15 @@ app.get('/users/:id', async (request, response) => {
 // API 3 POST Create new user in the users table
 app.post('/users', async (request, response) => {
     try {
-        const {name, email, password} = request.body;
+        const {username, email, password} = request.body;
         const hashed_password = await bcrypt.hash(password, 10);
-        const jwt_token = jwt.sign({name, email, hashed_password: hashed_password}, process.env.JWT_SECRET);
+        const jwt_token = jwt.sign({username, email, hashed_password: hashed_password}, process.env.JWT_SECRET);
         response.cookie('jwt_token', jwt_token);
-        const query = await pool.query(`INSERT INTO users(name, email, password, jwt_token, total_orders, delivered_orders, orders_in_progress, rejected_orders) VALUES ('${name}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
-        response.send(`User Created Successfully`)
+        const query = await pool.query(`INSERT INTO users(username, email, password, jwt_token, total_orders, delivered_orders, orders_in_progress, rejected_orders) VALUES ('${username}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
+        response.json({message: `User Created Successfully`, token: jwt_token})
     }
     catch (error) {
-        response.status(500).send(`Server Error: ${error.message}`)
-        process.exit(1)
-    }
-})
-
-// API 4 PUT update the user details in the users table
-app.put('/users/:user_id', async (request, response) => {
-    try {
-        const {user_id} = request.params
-        const {name} = request.body
-        const result = await pool.query(`SELECT name FROM users WHERE user_id='${user_id}'`)
-        if (result.rows.length === 0) {
-            response.status(404).send(`User Not Found`)
-        }
-        else {
-            const old_name = result.rows[0].name
-            if (name === old_name) {
-                response.status(404).send(`New Name Should be different From the old name`)
-            }
-            else {
-                const query = pool.query(`UPDATE users SET name='${name}' WHERE user_id='${user_id}';`)
-                response.status(200).send(`User Details Updated Successfully`)
-            }  
-        }
-        
-    }
-    catch(error) {
-        response.status(500).send(`Server Error: ${error.message}`)
-        process.exit(1)
+        response.status(500).json({message: error.message})
     }
 })
 
@@ -332,6 +303,56 @@ app.put('/orders/:order_id', async (request, response) => {
         response.status(500).json({message: error.message})
     }
 })
+
+// API 9 POST User login verification
+app.post('/login', async (request, response) => {
+    try {
+        const {username, password} = request.body
+        const user = await pool.query(`SELECT * FROM users WHERE user_name='${username}';`)
+        if (user.rows.length === 0) {
+            response.status(404).json({message: `User Not Found`})
+        }
+        else {
+            const is_password_correct = await bcrypt.compare(password, user.rows[0].password)
+            if (is_password_correct) {
+                const jwt_token = await pool.query(`SELECT jwt_token FROM users WHERE user_name='${username}';`)
+                request.cookie('jwt_token', jwt_token.rows[0].jwt_token)
+                response.status(200).json({message: `Login Successful`})
+            }
+            else {
+                response.status(401).json({message: `Invalid Password`})
+                }
+            }
+        }
+        catch(error) {
+            response.status(500).json({message: error.message})
+        }
+    })
+
+    // API 10 POST User Registration
+    app.post('/register', async (request, response) => {
+        try {
+            const {username, email, password} = request.body
+            const hashed_password = await bcrypt.hash(password, 10)
+            const check_user_exist = await pool.query(`SELECT * FROM users WHERE user_name='${username}';`)
+            const check_email_exist = await pool.query(`SELECT * FROM users WHERE email='${email}';`)
+            if (check_user_exist.rows.length > 0) {
+                response.status(400).json({message: `User Already Exists`})
+            }
+            else if (check_email_exist.rows.length > 0) {
+                response.status(400).json({message: `Email Already Exists`})
+            }
+            else {
+                const jwt_token = jwt.sign({username, email, hashed_password: hashed_password}, process.env.JWT_SECRET)
+                response.cookie('jwt_token', jwt_token)
+                const query = await pool.query(`INSERT INTO users(user_name, email, password, jwt_token, total_orders, orders_delivered, orders_in_progress, orders_rejected) VALUES ('${username}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
+                response.json({message: `User Registered Successfully`, token: jwt_token})
+            } 
+        }
+        catch(error) {
+            response.status(500).json({message: error.message})
+        }
+    })
 
 module.exports = { app, pool, runCommand };
 
