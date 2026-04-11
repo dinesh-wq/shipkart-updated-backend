@@ -3,7 +3,6 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const cookieParser = require('cookie-parser');
 
 
 const pool = new Pool({
@@ -13,40 +12,27 @@ const pool = new Pool({
     },
   });
 
-async function runCommand() {
-  const client = await pool.connect();
-  const data = await client.query("${COMMAND}");
-  await client.release();
-  return data;
-}
 
-const cors = require('cors');
 const app = express();
 app.use(express.json());
-app.use(cookieParser());
-app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-}));
 
 const PORT = process.env.PORT || 3000;
 
-// Avoid starting the server when this module is imported elsewhere.
-if (require.main === module) {
-  const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
 
-  server.on('error', (err) => {
-    if (err && err.code === 'EADDRINUSE') {
-      console.error(`Port ${PORT} is already in use. Stop other server instances and retry.`);
-      return;
+
+const startServer = async () => {
+    try {
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
     }
-    console.error(err);
-  });
+    catch(error) {
+        console.error('Error starting server:', error);
+        process.exit(1);
+    }
 }
 
-
+startServer();
 
 // API 1 GET get the list of all users
 app.get('/users', async (request, response) => {
