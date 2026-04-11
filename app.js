@@ -343,5 +343,5 @@ app.post('/login', async (request, response) => {
         }
     })
 
-module.exports = { app, pool, runCommand };
+module.exports = { app, pool};
 
