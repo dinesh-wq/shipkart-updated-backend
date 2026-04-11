@@ -316,7 +316,7 @@ app.post('/login', async (request, response) => {
             const is_password_correct = await bcrypt.compare(password, user.rows[0].password)
             if (is_password_correct) {
                 const jwt_token = await pool.query(`SELECT jwt_token FROM users WHERE user_name='${username}';`)
-                request.cookie('jwt_token', jwt_token.rows[0].jwt_token)
+                response.cookie('jwt_token', jwt_token.rows[0].jwt_token)
                 response.status(200).json({message: `Login Successful`})
             }
             else {
