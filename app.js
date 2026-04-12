@@ -310,7 +310,7 @@ app.post('/login', async (request, response) => {
             if (is_password_correct) {
                 const jwt_token = await pool.query(`SELECT jwt_token FROM users WHERE user_name='${username}';`)
                 response.cookie('jwt_token', jwt_token.rows[0].jwt_token)
-                response.status(200).json({message: `Login Successful`})
+                response.status(200).json({message: `Login Successful`, jwt_token: jwt_token.rows[0].jwt_token})
             }
             else {
                 response.status(401).json({message: `Invalid Password`})
