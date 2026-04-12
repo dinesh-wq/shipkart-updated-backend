@@ -17,7 +17,7 @@ const pool = new Pool({
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: 'https://ship-kart-updated.vercel.app/',
+    origin: 'https://ship-kart-updated.vercel.app',
     credentials: true,
 }))
 const PORT = process.env.PORT || 3000;
