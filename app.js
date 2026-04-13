@@ -4,6 +4,7 @@ const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
 
 
 const pool = new Pool({
@@ -348,8 +349,9 @@ app.post('/login', async (request, response) => {
                 return response.status(400).json({message: `Email Already Exists`})
             }
             else {
-                const jwt_token = jwt.sign({username, email, hashed_password: hashed_password}, process.env.JWT_SECRET)
-                const query = await pool.query(`INSERT INTO users(user_name, email, password, jwt_token, total_orders, orders_delivered, orders_in_progress, orders_rejected) VALUES ('${username}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
+                const user_id = uuidv4();
+                const jwt_token = jwt.sign({username, user_id, email, hashed_password: hashed_password}, process.env.JWT_SECRET)
+                const query = await pool.query(`INSERT INTO users(user_id, user_name, email, password, jwt_token, total_orders, orders_delivered, orders_in_progress, orders_rejected) VALUES ('${user_id}', '${username}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
                 return response.json({message: `User Registered Successfully`, token: jwt_token})
             } 
         }
