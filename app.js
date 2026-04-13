@@ -101,7 +101,7 @@ app.post('/users', async (request, response) => {
 })
 
 // API 4 GET Returns all the orders of the specific user from the orders table
-app.get('/orders/:user_id', async (request, response) => {
+app.get('/users/:user_id/orders', async (request, response) => {
     try {
         const {user_id} = request.params
         const query = await pool.query(`SELECT * FROM orders WHERE user_id='${user_id}';`);
