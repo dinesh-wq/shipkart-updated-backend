@@ -342,14 +342,13 @@ app.post('/login', async (request, response) => {
             const check_user_exist = await pool.query(`SELECT * FROM users WHERE user_name='${username}';`)
             const check_email_exist = await pool.query(`SELECT * FROM users WHERE email='${email}';`)
             if (check_user_exist.rows.length > 0) {
-                return response.status(400).json({message: `User Already Exists`})
+                return response.status(400).json({message: `Username Already Exists`})
             }
             else if (check_email_exist.rows.length > 0) {
                 return response.status(400).json({message: `Email Already Exists`})
             }
             else {
                 const jwt_token = jwt.sign({username, email, hashed_password: hashed_password}, process.env.JWT_SECRET)
-                response.cookie('jwt_token', jwt_token)
                 const query = await pool.query(`INSERT INTO users(user_name, email, password, jwt_token, total_orders, orders_delivered, orders_in_progress, orders_rejected) VALUES ('${username}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
                 return response.json({message: `User Registered Successfully`, token: jwt_token})
             } 
