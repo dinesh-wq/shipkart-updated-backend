@@ -89,7 +89,7 @@ app.post('/users', async (request, response) => {
             return response.status(400).json({message: `Email Already Exists`})
         }
         else {
-            const query = await pool.query(`INSERT INTO users(user_name, email, password, jwt_token, total_orders, delivered_orders, orders_in_progress, rejected_orders) VALUES ('${username}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0, 0);`)
+            const query = await pool.query(`INSERT INTO users(user_name, email, password, jwt_token, total_orders, delivered_orders, orders_in_progress) VALUES ('${username}', '${email}', '${hashed_password}', '${jwt_token}', 0, 0, 0);`)
             response.json({message: `User Created Successfully`, token: jwt_token})
         }
     }
